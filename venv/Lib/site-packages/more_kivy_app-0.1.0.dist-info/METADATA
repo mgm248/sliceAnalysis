@@ -1,0 +1,50 @@
+Metadata-Version: 2.1
+Name: more-kivy-app
+Version: 0.1.0
+Summary: Base class for kivy apps that is crash resistant with builtin configuration.
+Home-page: https://github.com/matham/more-kivy-app
+Author: Matthew Einhorn
+Author-email: moiein2000@gmail.com
+License: MIT
+Project-URL: Bug Reports, https://github.com/matham/more-kivy-app/issues
+Project-URL: Source, https://github.com/matham/more-kivy-app
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Requires-Dist: tree-config
+Requires-Dist: kivy
+Provides-Extra: dev
+Requires-Dist: pytest (>=3.6) ; extra == 'dev'
+Requires-Dist: pytest-cov ; extra == 'dev'
+Requires-Dist: sphinx-rtd-theme ; extra == 'dev'
+Requires-Dist: coveralls ; extra == 'dev'
+Requires-Dist: sphinx ; extra == 'dev'
+Requires-Dist: flake8 ; extra == 'dev'
+Requires-Dist: wheel ; extra == 'dev'
+
+more-kivy-app
+=============
+
+Base class for kivy apps that is crash resistant with builtin configuration.
+
+For more information: https://matham.github.io/more-kivy-app/index.html
+
+.. image:: https://img.shields.io/pypi/pyversions/more-kivy-app.svg
+    :target: https://pypi.python.org/pypi/more-kivy-app/
+    :alt: Supported Python versions
+
+.. image:: https://img.shields.io/pypi/v/more-kivy-app.svg
+    :target: https://pypi.python.org/pypi/more-kivy-app/
+    :alt: Latest Version on PyPI
+
+.. image:: https://coveralls.io/repos/github/matham/more-kivy-app/badge.svg?branch=master
+    :target: https://coveralls.io/github/matham/more-kivy-app?branch=master
+    :alt: Coverage status
+
+.. image:: https://github.com/matham/more-kivy-app/workflows/Python%20application/badge.svg
+    :target: https://github.com/matham/more-kivy-app/actions
+    :alt: Github action status
+
+

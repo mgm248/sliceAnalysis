@@ -1,0 +1,43 @@
+Metadata-Version: 2.1
+Name: tree-config
+Version: 0.1.0
+Summary: Configuration of objects that are nested in a tree-like fashion.
+Home-page: https://github.com/matham/tree-config
+Author: Matthew Einhorn
+Author-email: moiein2000@gmail.com
+License: MIT
+Project-URL: Bug Reports, https://github.com/matham/tree-config/issues
+Project-URL: Source, https://github.com/matham/tree-config
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Requires-Dist: ruamel.yaml
+Provides-Extra: dev
+Requires-Dist: pytest (>=3.6) ; extra == 'dev'
+Requires-Dist: pytest-cov ; extra == 'dev'
+Requires-Dist: sphinx-rtd-theme ; extra == 'dev'
+Requires-Dist: coveralls ; extra == 'dev'
+Requires-Dist: sphinx ; extra == 'dev'
+Requires-Dist: flake8 ; extra == 'dev'
+Requires-Dist: wheel ; extra == 'dev'
+
+tree-config
+===========
+
+Configuration of objects that are nested in a tree-like fashion.
+
+For more information: http://matham.github.io/tree-config/index.html
+
+
+.. image:: https://coveralls.io/repos/github/matham/tree-config/badge.svg?branch=master
+    :target: https://coveralls.io/github/matham/tree-config?branch=master
+    :alt: Coverage status
+
+
+.. image:: https://github.com/matham/tree-config/workflows/Python%20application/badge.svg
+    :target: https://github.com/matham/tree-config/actions
+    :alt: Github action status
+
+
