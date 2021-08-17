@@ -17,9 +17,9 @@ import pandas as pd
 
 get_exp_data = False
 segment = [-1, 2]
-ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-07-21\\'
-fname = 'slice2_merged.h5'
-rec_fname = '2021-07-21T13-14-51McsRecording'
+ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-12\\'
+fname = 'slice4_merged.h5'
+rec_fname = '2021-08-12T15-22-57McsRecording'
 ceed_data = ffolder+fname
 Fs=20000
 reader = CeedDataReader(ceed_data)
@@ -76,7 +76,7 @@ for unit in range(0, len(all_spikes)):
     neo_st.append(neo.core.SpikeTrain(unitST, units=s, t_start=0 * s,
                                       t_stop=tstop))
     sp_smooth = elephant.statistics.instantaneous_rate(neo_st[0], sampling_period=1 * pq.ms,
-                                           kernel=elephant.kernels.AlphaKernel(30 * pq.ms))
+                                           kernel=elephant.kernels.GaussianKernel(5 * pq.ms))
 
     for row in range(0,exp_df.shape[0]):
         start = exp_df.iloc[row]['t_start']*s+segment[0]*s
@@ -135,11 +135,11 @@ def plot_responses_timestog(ev_sr_Asep, ev_sr_Bsep, shape='sq', square_exp=False
 
 def plot_responses_condtog(ev_sr_df, shape='sq', square_exp=False):
     if square_exp:
-        ev_sr_Ast_Bmd = ev_sr_df[ev_sr_df['description'].isin(['A strong B medium ' +shape])]
-        ev_sr_Amd_Bst = ev_sr_df[ev_sr_df['description'].isin(['A medium B strong '+shape])]
+        ev_sr_Ast_Bmd = ev_sr_df[ev_sr_df['description'].isin(['A strong B weak ' +shape])]
+        ev_sr_Amd_Bst = ev_sr_df[ev_sr_df['description'].isin(['A weak B strong '+shape])]
     else:
-        ev_sr_Ast_Bmd = ev_sr_df[ev_sr_df['description'].isin(['A strong B medium'])]
-        ev_sr_Amd_Bst = ev_sr_df[ev_sr_df['description'].isin(['A medium B strong'])]
+        ev_sr_Ast_Bmd = ev_sr_df[ev_sr_df['description'].isin(['A strong B weak'])]
+        ev_sr_Amd_Bst = ev_sr_df[ev_sr_df['description'].isin(['A weak B strong'])]
     for unit in range(0, np.max(ev_sr_Asep['Unit #'])):
         if np.any(ev_sr_Asep['Unit #']==unit):
             plt.close()
@@ -150,25 +150,25 @@ def plot_responses_condtog(ev_sr_df, shape='sq', square_exp=False):
             plt.savefig(ffolder + r'Figures\spikes\evoked_spikerates\A and B\\' + fname + '\\' + 'A+B\\'+'Unit' + str(unit)+'_'+shape)
 
 """Plot each neurons' response to stimuli, save"""
-# import os
-# try:
-#     os.mkdir(ffolder + r'\Figures\spikes\evoked_spikerates\\' + 'A and B')
-#
-# except:
-#     print('Directory already made')
-# try:
-#     os.mkdir(ffolder + r'\Figures\spikes\evoked_spikerates\\' + 'A and B'+ '\\' + fname)
-# except:
-#     print('File directory already made')
-#
-# try:
-#     os.mkdir(ffolder + r'\Figures\spikes\evoked_spikerates\\' + 'A and B'+ '\\' + fname + '\\' + 'A sep B sep')
-#     os.mkdir(ffolder + r'\Figures\spikes\evoked_spikerates\\' + 'A and B'+ '\\' + fname + '\\' + 'A+B')
-# except:
-#     print('File directory already made')
-#
-# plot_responses_timestog(ev_sr_Asep, ev_sr_Bsep, shape='sq', square_exp=True)
-# plot_responses_condtog(ev_sr_df, shape='sq', square_exp=True)
+import os
+try:
+    os.mkdir(ffolder + r'\Figures\spikes\evoked_spikerates\\' + 'A and B')
+
+except:
+    print('Directory already made')
+try:
+    os.mkdir(ffolder + r'\Figures\spikes\evoked_spikerates\\' + 'A and B'+ '\\' + fname)
+except:
+    print('File directory already made')
+
+try:
+    os.mkdir(ffolder + r'\Figures\spikes\evoked_spikerates\\' + 'A and B'+ '\\' + fname + '\\' + 'A sep B sep')
+    os.mkdir(ffolder + r'\Figures\spikes\evoked_spikerates\\' + 'A and B'+ '\\' + fname + '\\' + 'A+B')
+except:
+    print('File directory already made')
+
+plot_responses_timestog(ev_sr_Asep, ev_sr_Bsep, shape='sq', square_exp=True)
+plot_responses_condtog(ev_sr_df, shape='sq', square_exp=True)
 # plot_responses_timestog(ev_sr_Asep, ev_sr_Bsep, shape='cos', square_exp=True)
 # plot_responses_condtog(ev_sr_df, shape='cos',square_exp=True)
 

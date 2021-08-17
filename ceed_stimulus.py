@@ -517,7 +517,7 @@ if __name__ == "__main__":
     # h5_file = date + "___slice" + str(slice) + "_merged"
     # h5_file = base_filename.format(date=date, file=h5_file, ext="h5")
     import pprint
-    ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-04\\'
+    ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-12\\'
     for fname in os.listdir(ffolder):
         if '_merged' in fname:
             ceed_data = ffolder + fname

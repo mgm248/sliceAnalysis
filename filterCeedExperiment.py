@@ -7,7 +7,7 @@ import mne
 import matplotlib.pyplot as plt
 import os
 
-ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-04\\'
+ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-12\\'
 try:
     os.mkdir(ffolder+'filt_and_rsamp')
 except:

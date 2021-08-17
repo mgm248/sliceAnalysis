@@ -327,18 +327,23 @@ def lump_spikes_from_DF(circus_DF, base=None, t_stop=None):
 
 #convert_mcsh5_to_np(r'C:\Users\Michael\Analysis\myRecordings_extra\21-06-17\', r'C:\Users\Michael\Analysis\myRecordings_extra\21-05-28\\2021-05-28T11-31-01McsRecording.npy', key=mea120, channel_order="key", chunks=1e9)
 
-"""Convert data for spike sorting"""
-# import os
-# fdir = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-04\\'
-# for file in os.listdir(fdir):
-#     if 'Recording.h5' in file:
-#     # if ('2021-07-21T14-50-24McsRecording.h5' in file) or ('2021-07-21T15-45-46McsRecording.h5' in file):
-#         convert_mcsh5_to_np(
-#             fdir+file,
-#             fdir+file.replace('h5','npy'), key=mea120,
-#             channel_order="key", chunks=1e9)
 
 
-# circus_df = get_circus_manual_result_DF(r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-04\Analysis\spyking-circus\2021-08-04T11-26-10McsRecording\2021-08-04T11-26-10McsRecordingtimes.GUI\\{file}.{ext}', get_electrodes=True, get_groups=False, fs=20000*Hz)
-# from pprint import pprint
-# pprint(circus_df)
+if "___main___":
+    """Convert data for spike sorting"""
+    import os
+    fdir = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-12\\'
+    for file in os.listdir(fdir)[4:]:
+        if 'Recording.h5' in file:
+        # if ('2021-07-21T14-50-24McsRecording.h5' in file) or ('2021-07-21T15-45-46McsRecording.h5' in file):
+            convert_mcsh5_to_np(
+                fdir+file,
+                fdir+file.replace('h5','npy'), key=mea120,
+                channel_order="key", chunks=1e9)
+
+
+    # ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-04\\'
+    # rec_fname = '2021-08-04T14-52-44McsRecording'
+    # circus_df = get_circus_manual_result_DF(ffolder+'Analysis\\spyking-circus\\'+rec_fname+'\\'+rec_fname+'times.GUI\\{file}.{ext}', get_electrodes=True, get_groups=False, fs=20000*Hz)
+    # circus_df.to_pickle(ffolder+'Analysis\\'+rec_fname+'.pkl')
+    # circus_df.to_csv(ffolder+'Analysis\\'+rec_fname+'.csv')
