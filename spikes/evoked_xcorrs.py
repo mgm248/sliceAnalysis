@@ -17,11 +17,11 @@ import pandas as pd
 import pickle
 
 segment = [-1, 6]
-ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-04\\'
-fname = 'slice7_merged.h5'
-rec_fname = '2021-08-04T14-52-44McsRecording'
+ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-12\\'
+fname = 'slice5_merged.h5'
+rec_fname = '2021-08-12T15-52-57McsRecording'
 spyk_f = ffolder+'Analysis\\spyking-circus\\' + rec_fname + '\\' + rec_fname + 'times.result.hdf5'
-circus_df = pickle.load(open(ffolder+'Analysis\\'+rec_fname+'.pkl', "rb"))
+# circus_df = pickle.load(open(ffolder+'Analysis\\'+rec_fname+'.pkl', "rb"))
 all_spikes = []
 with h5py.File(spyk_f, "r") as f:
     # List all groups
@@ -324,25 +324,25 @@ def ISIs_per_spike(ev_sr_df, sts, units, duration=1*s, offset=0*s, event='A stro
 #     plt.savefig(r'C:\Users\Michael\Analysis\myRecordings_extra\21-07-21\Figures\spikes\xcorrs\evoked\B medium sq\\'+str(i))
 #     plt.close()
 
-"""evoked autocorr for a single unit"""
+# """evoked autocorr for a single unit"""
 # for unit in range(0, len(sts)):
-#     pairwise_odor_autoch_grid(ev_sr_df, sts, [unit], duration= 1.3 * s, offset=.2 * s, event='1s stim const', window=.1, bin=.001)
-#     plt.savefig(r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-04\Figures\spikes\xcorrs\recording6\evoked_autocorrs\\Unit'+str(unit))
+#     pairwise_odor_autoch_grid(ev_sr_df, sts, [unit], duration= 1 * s, offset=0 * s, event='1s stim const', window=.1, bin=.001)
+#     plt.savefig(r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-12\Figures\Xcorrs\evoked\slice5\\Unit'+str(unit))
 #     plt.close()
-pairwise_odor_autoch_grid_pertrial(ev_sr_df, sts, [unit], duration= 1.3 * s, offset=.2 * s, event='1s stim const', window=.1, bin=.001)
+# pairwise_odor_autoch_grid_pertrial(ev_sr_df, sts, [unit], duration= 1.3 * s, offset=.2 * s, event='1s stim const', window=.1, bin=.001)
 #
 # """grid of xcorrs"""
 # units = [32, 33, 38]
 # pairwise_odor_cch_grid([], sts, units, duration=[], offset=[.2*s], event='1s stim const', window=.1, bin=.002, evoked=False)
 # plt.show()
 
-unit = 32
-isis = ISIs_per_spike(ev_sr_df, sts, [unit], duration= 1 * s, offset=0 * s, event='1s stim const', window=.1, bin=.001)
-for i, isi in enumerate(isis):
-    plt.figure()
-    plt.plot(np.arange(1, len(isi)+1, 1), isi)
-    plt.savefig(r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-04\Figures\spikes\ISIs\unit32_pertrial\\'+str(i))
-    plt.close()
+# unit = 95
+# isis = ISIs_per_spike(ev_sr_df, sts, [unit], duration= 1 * s, offset=0 * s, event='1s stim const', window=.1, bin=.001)
+# for i, isi in enumerate(isis):
+#     plt.figure()
+#     plt.plot(np.arange(1, len(isi)+1, 1), isi)
+    # plt.savefig(r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-04\Figures\spikes\ISIs\unit32_pertrial\\'+str(i))
+    # plt.close()
 
 # units = [121, 100, 46, 38, 35, 17]
 # units = [46, 35]
@@ -357,50 +357,50 @@ for i, isi in enumerate(isis):
 # pairwise_odor_cch_grid(ev_sr_df, sts, units, duration=5*s, offset=-6*s, event='Experiment: Whole experiment; Condition: 0; Shape A', window=100, bin=.005)
 
 """Autocorrs, Xcorrs, over recording period"""
-# import os
-# binsize=.001
-# ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-04\\'
-# Fs = 20000
-# slicen = 1
-# for file in os.listdir(ffolder):
-#     if 'McsRecording.h5' in file:
-#         try:
-#             os.mkdir(r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-04\Figures\spikes\xcorrs\\recording'+str(slicen))
-#         except:
-#             print('dir already made')
-#         savedir = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-04\Figures\spikes\xcorrs\\recording'+str(slicen)+'\\evoked_autocorrs\\'
-#         try:
-#             os.mkdir(savedir)
-#         except:
-#             print('dir already made')
-#         spyk_f = ffolder + 'Analysis\\spyking-circus\\' + file.replace('.h5','') + '\\' + file.replace('.h5','') + 'times.result.hdf5'
-#         all_spikes = []
-#         with h5py.File(spyk_f, "r") as f:
-#             # List all groups
-#             for key in f['spiketimes'].keys():
-#                 all_spikes.append(np.asarray(f['spiketimes'][key]))
-#
-#         sts = []
-#         for unit in range(0, len(all_spikes)):
-#             # if cluster_info[unit + 1][5] == 'good':
-#             unitST = all_spikes[unit] / Fs
-#             # tstop = float(exp_df.iloc[exp_df.shape[0] - 1]['t_start']) + 10
-#             # if unitST[-1] > tstop:
-#             if unitST.shape[0]>0:
-#                 tstop = unitST[-1] + 2
-#                 neo_st = neo.core.SpikeTrain(unitST, units=s, t_start=0 * s, t_stop=tstop * s)
-#                 sts.append(neo_st)
-#
-#         for i, unit in enumerate(sts):
-#             counts, bins = xcorr([], st1=unit, st2=unit, offset=[], duration=[], window=.1, bin=binsize, evoked=False)
-#             plt.figure()
-#             # plt.bar(x=bins[101:-1],
-#             #         height=counts[101:],
-#             #         align='edge')
-#             plt.bar(bins[101:-1], counts[101:], width=binsize, linewidth=1.2, edgecolor='k', align='edge')
-#             plt.savefig(savedir+str(i))
-#             plt.close()
-#         slicen+=1
+import os
+binsize=.001
+ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-12\\'
+Fs = 20000
+slicen = 1
+for file in os.listdir(ffolder):
+    if 'McsRecording.h5' in file:
+        try:
+            os.mkdir(r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-12\Figures\spikes\xcorrs\\recording'+str(slicen))
+        except:
+            print('dir already made')
+        savedir = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-12\Figures\spikes\xcorrs\\recording'+str(slicen)+'\\evoked_autocorrs\\'
+        try:
+            os.mkdir(savedir)
+        except:
+            print('dir already made')
+        spyk_f = ffolder + 'Analysis\\spyking-circus\\' + file.replace('.h5','') + '\\' + file.replace('.h5','') + 'times.result.hdf5'
+        all_spikes = []
+        with h5py.File(spyk_f, "r") as f:
+            # List all groups
+            for key in f['spiketimes'].keys():
+                all_spikes.append(np.asarray(f['spiketimes'][key]))
+
+        sts = []
+        for unit in range(0, len(all_spikes)):
+            # if cluster_info[unit + 1][5] == 'good':
+            unitST = all_spikes[unit] / Fs
+            # tstop = float(exp_df.iloc[exp_df.shape[0] - 1]['t_start']) + 10
+            # if unitST[-1] > tstop:
+            if unitST.shape[0]>0:
+                tstop = unitST[-1] + 2
+                neo_st = neo.core.SpikeTrain(unitST, units=s, t_start=0 * s, t_stop=tstop * s)
+                sts.append(neo_st)
+
+        for i, unit in enumerate(sts):
+            counts, bins = xcorr([], st1=unit, st2=unit, offset=[], duration=[], window=.1, bin=binsize, evoked=False)
+            plt.figure()
+            # plt.bar(x=bins[101:-1],
+            #         height=counts[101:],
+            #         align='edge')
+            plt.bar(bins[101:-1], counts[101:], width=binsize, linewidth=1.2, edgecolor='k', align='edge')
+            plt.savefig(savedir+str(i))
+            plt.close()
+        slicen+=1
 
 
 #

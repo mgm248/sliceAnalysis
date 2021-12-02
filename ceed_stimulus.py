@@ -436,8 +436,44 @@ def divy_exp_series(exp_df, exps, sub_exps=10):
         new_exp_df = new_exp_df[new_exp_df.experiment != exp]
     return new_exp_df
 
-def get_exp_eventdata(reader):
-    """Get experiment dataframe using event data"""
+def extract_habituation_evts(df):
+    #second event will always have 15s delay, first event will depend on the length of the previous stage
+    df_start = df[df['start_loop']=='start_loop']
+    df_end = df[df['start_loop']=='end_loop']
+    evts = []
+    for i, row in df_start.iterrows():
+        if i == 0:
+            evts.append(
+                {'substage': 'ITI infinite s (first event)', 't_start': row['t_start']})
+            stage_length = df_end.iloc[i]['t_start'] - row['t_start']
+            ITI = round(stage_length - 16, 1)
+            evts.append(
+                {'substage': 'ITI ' + str(ITI) + 's', 't_start': row['t_start'] + ITI + .5})
+            evts.append({'substage': 'ITI 15s',
+                         't_start': row['t_start'] + ITI + 16})
+        else:
+            #get length of stage
+            try:
+                if not isinstance(df_end.iloc[i]['t_start'], str):  # if it is a string, out of range
+                    stage_length = df_end.iloc[i]['t_start'] - row['t_start']
+                    ITI = round(stage_length - 16, 1)
+                evts.append(
+                    {'substage': 'ITI ' + str(ITI) + 's', 't_start': row['t_start']+ITI+.5})
+                evts.append({'substage': 'ITI 15s',
+                             't_start': row['t_start'] + ITI + 16})  # there will always be an event 15s later
+            except:
+                print('huh')
+        print(i)
+
+    return pd.DataFrame(evts)
+
+def get_exp_eventdata(reader, select_dataframe):
+    """
+    Get experiment dataframe using event data
+
+    select_dataframe:: 'combine' -- picks the experiment with the most events
+        or 'biggest' -- returns all the experiments in one dataframe
+    """
     dfs = []
     for j, exp in enumerate(reader.experiments_in_file):
         reader.load_experiment(exp)
@@ -451,7 +487,7 @@ def get_exp_eventdata(reader):
                     for ff in f.get_funcs():
                         d[ff.ceed_id] = ff, ff.name
 
-            if d[0][1] == 'Whole experiment' or d[0][1] == 'Whole experiment-2':
+            if d[0][1] == 'Whole experiment' or d[0][1] == 'Whole experiment-2' or d[0][1]=='Stage-2' or d[0][1]=='Stage-3':
                 print('Getting event data for ' + str(d[0][1]))
                 flat_events = []
                 i=0
@@ -467,11 +503,15 @@ def get_exp_eventdata(reader):
                 # flat_events = [[ev[0], ev[1], d[ev[1]][1], ev[2]] + list(ev[3]) for ev in reader.event_data]
 
                 loop_events = [line for line in flat_events if line[3] == 'start_loop']
-                df = pd.DataFrame(loop_events, columns=['Frame','ceed ID','substage','start_loop'])
+                df_start = pd.DataFrame(loop_events, columns=['Frame','ceed ID','substage','start_loop'])
+                loop_events = [line for line in flat_events if line[3] == 'end_loop']
+                df_end = pd.DataFrame(loop_events, columns=['Frame','ceed ID','substage','start_loop'])
+                df = df_start.append(df_end)
 
                 """Drop subevents of substages with multiple stages"""
                 larger_events = ['A weak B medium cos', 'A weak B medium sq','A strong B medium cos', 'A strong B medium sq',
                                  'A medium B weak cos', 'A medium B weak sq', 'A medium B strong cos', 'A medium B strong sq',
+                                 'A strong B weak sq', 'A weak B strong sq', 'A strong B weak ramp', 'A weak B strong ramp',
                                  'A delay B', 'B delay A']
                 to_drop = []
                 for index, row in df.iterrows():
@@ -480,13 +520,21 @@ def get_exp_eventdata(reader):
                         to_drop.append(index+2)
 
                 df = df.drop(labels=to_drop, axis=0)
-                df = df.drop(labels=['start_loop'], axis=1)
-
+                # df = df.drop(labels=['start_loop'], axis=1)
+                df = df.sort_values('Frame', axis=0, ascending=True)
                 aligned_times = []
                 for index, row in df.iterrows():
-                    aligned_times.append(reader.electrode_intensity_alignment_gpu_rate[row[0]] / 20000)
+                    try:
+                        aligned_times.append(reader.electrode_intensity_alignment_gpu_rate[row[0]] / 20000)
+                    except:
+                        aligned_times.append('out of range')
                 df['t_start'] = aligned_times
-                dfs.append(df)
+                if df.shape[0] > 1:
+                    df = extract_habituation_evts(df)
+                    df = df.sort_values('t_start', axis=0, ascending=True)
+                    dfs.append(df)
+
+                # dfs.append(df)
 
     # stage_names = [s.stage.name if isinstance(s, CeedStageRef) else s.name for s in
     #                original_root.stages]
@@ -500,12 +548,27 @@ def get_exp_eventdata(reader):
     # strong_loop_0 = strong[strong[3] == 'loop_start']
     # strong = strong[strong[5] == 0]
     # i = strong.iloc[0][0]
-    max_length = 0
-    for df in dfs:
-        if df.shape[0] > max_length:
-            max_length = df.shape[0]
-            biggest_df = df
-    return biggest_df
+    if select_dataframe == 'biggest':
+        max_length = 0
+        for df in dfs:
+            if df.shape[0] > max_length:
+                max_length = df.shape[0]
+                biggest_df = df
+        return biggest_df
+    elif select_dataframe == 'combine':
+        print('adding str NE to all events in second experiment')
+        for di, df in enumerate(dfs):
+            if di == 0:
+                overall_df = df
+            elif di == 1:
+                df['substage'] = 'NE ' + df['substage']
+                overall_df = overall_df.append(df)
+            elif di == 2:
+                df['substage'] = 'Washout ' + df['substage']
+                overall_df = overall_df.append(df)
+        return overall_df
+
+
 
 if __name__ == "__main__":
 
@@ -517,8 +580,9 @@ if __name__ == "__main__":
     # h5_file = date + "___slice" + str(slice) + "_merged"
     # h5_file = base_filename.format(date=date, file=h5_file, ext="h5")
     import pprint
-    ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-12\\'
+    ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-11-17\\'
     for fname in os.listdir(ffolder):
+        #if 'merged' in fname: # and 'ramp' in fname:
         if '_merged' in fname:
             ceed_data = ffolder + fname
             Fs = 20000
@@ -526,7 +590,7 @@ if __name__ == "__main__":
             # open the data file
             reader.open_h5()
 
-            exp_df = get_exp_eventdata(reader)  # Grab all experiment information
+            exp_df = get_exp_eventdata(reader, select_dataframe='combine')  # Grab all experiment information
             exp_df.to_pickle(ffolder + 'Analysis\\' + fname + '_exp_df.pkl')
 
     # electrode = 'A4'

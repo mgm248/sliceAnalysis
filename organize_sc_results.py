@@ -228,7 +228,7 @@ def get_circus_auto_result_DF(result_base, gui_base, fs=10000*Hz, base=None):
 
 def get_circus_manual_result_DF(gui_base, get_electrodes=True, get_groups=False, fs=20000*Hz):
     """Can get the electrode each neuron came from"""
-    period = (1./fs).rescale(ms)
+    period = (1./fs)#.rescale(ms)
     times = np.load(gui_base.format(file="spike_times", ext="npy"))
     clusters = np.load(gui_base.format(file="spike_clusters", ext="npy"))
     cluster_ids = np.unique(clusters)
@@ -264,7 +264,7 @@ def get_circus_manual_result_DF(gui_base, get_electrodes=True, get_groups=False,
     pbar.close()
 
     if get_groups:
-        csv_file = open(gui_base.format(file="cluster_groups", ext="csv"))
+        csv_file = open(gui_base.format(file="cluster_group", ext="tsv"))
         cluster_groups = pd.read_csv(csv_file, sep='\t')['group']
         circus_df['Group'] = cluster_groups
     return circus_df
@@ -331,19 +331,19 @@ def lump_spikes_from_DF(circus_DF, base=None, t_stop=None):
 
 if "___main___":
     """Convert data for spike sorting"""
-    import os
-    fdir = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-12\\'
-    for file in os.listdir(fdir)[4:]:
-        if 'Recording.h5' in file:
-        # if ('2021-07-21T14-50-24McsRecording.h5' in file) or ('2021-07-21T15-45-46McsRecording.h5' in file):
-            convert_mcsh5_to_np(
-                fdir+file,
-                fdir+file.replace('h5','npy'), key=mea120,
-                channel_order="key", chunks=1e9)
+    # import os
+    # fdir = r'C:\Users\Michael\Analysis\myRecordings_extra\21-11-17\\'
+    # for file in os.listdir(fdir):
+    #     # if 'Recording.h5' in file:
+    #     if '2021-11-17T15-52-00McsRecording.h5' in file:
+    #         convert_mcsh5_to_np(
+    #             fdir+file,
+    #             fdir+'Analysis\spyking-circus\\'+file.replace('h5','npy'), key=mea120,
+    #             channel_order="key", chunks=1e9)
 
-
-    # ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-04\\'
-    # rec_fname = '2021-08-04T14-52-44McsRecording'
-    # circus_df = get_circus_manual_result_DF(ffolder+'Analysis\\spyking-circus\\'+rec_fname+'\\'+rec_fname+'times.GUI\\{file}.{ext}', get_electrodes=True, get_groups=False, fs=20000*Hz)
-    # circus_df.to_pickle(ffolder+'Analysis\\'+rec_fname+'.pkl')
-    # circus_df.to_csv(ffolder+'Analysis\\'+rec_fname+'.csv')
+    """get spyking-circus df"""
+    ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-11-17\\'
+    rec_fname = '2021-11-17T11-38-14McsRecording'
+    circus_df = get_circus_manual_result_DF(ffolder+'Analysis\\spyking-circus\\'+rec_fname+'\\'+rec_fname+'times.GUI\\{file}.{ext}', get_electrodes=True, get_groups=True, fs=20000*Hz)
+    circus_df.to_pickle(ffolder+'Analysis\spyking-circus\\'+rec_fname+'.pkl')
+    circus_df.to_csv(ffolder+'Analysis\spyking-circus\\'+rec_fname+'.csv')

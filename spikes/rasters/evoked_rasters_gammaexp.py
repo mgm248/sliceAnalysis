@@ -16,9 +16,9 @@ import quantities as pq
 import pandas as pd
 
 segment = [-.5, 5]
-ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-04\\'
-fname = 'slice7_merged.h5'
-rec_fname = '2021-08-04T14-52-44McsRecording'
+ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-12\\'
+fname = 'slice5_merged.h5'
+rec_fname = '2021-08-12T15-52-57McsRecording'
 spyk_f = ffolder+'Analysis\\spyking-circus\\' + rec_fname + '\\' + rec_fname + 'times.result.hdf5'
 all_spikes = []
 with h5py.File(spyk_f, "r") as f:
@@ -72,15 +72,15 @@ for unit in range(0, len(all_spikes)):
 
 ev_sr_df = pd.DataFrame(all_d)
 curr_df = ev_sr_df[ev_sr_df['substage']=='1s stim const']
-goodunits = [32, 33, 38]
+goodunits = [86, 105, 106]
 for unit in curr_df['Unit #'].unique():
     plt.figure(figsize=(12,8))
     curru_df = curr_df[curr_df['Unit #']==unit]
     for i, trial in enumerate(curr_df['Event time'].unique()):
         trial_df = curru_df[curru_df['Event time'] == trial]
-        plt.plot(trial_df['event spike rate'].iloc[0] - trial * s, i * np.ones_like(trial_df['event spike rate'].iloc[0]), 'k.', markersize=4, color='black')
-    plt.xlim(0,2)
-    plt.savefig(r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-04\Figures\spikes\rasters\perunit\\'+str(unit)+'.png')
+        plt.plot(trial_df['event spike rate'].iloc[0] - trial * s, i * np.ones_like(trial_df['event spike rate'].iloc[0]), 'k.', markersize=4)
+    plt.xlim(-.1, 1)
+    plt.savefig(r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-12\Figures\spikes\rasters\slice5\\'+str(unit)+'.png')
 
 
 def compare_conditions(comparison, units, shape):

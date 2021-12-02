@@ -65,8 +65,9 @@ def plot_spectrogram(data, fs, levels=100, sigma=1, perc_low=1, perc_high=99, nf
     plt.contourf(x1, list(reversed(y1)), Z, vmin=None, vmax=None, extent=extent, levels=levels)
    # plt.imshow(spec, cmap='hot', interpolation='none')
   #  plt.contourf(x1, list(reversed(y1)), Z, vmin=-50, vmax=10, extent=extent, levels=levels)
-    plt.colorbar()
+  #   plt.colorbar()
     plt.axis('auto')
+    plt.tight_layout()
   #  plt.axis(ymin=0, ymax=200)
   #   plt.show()
 

@@ -7,14 +7,14 @@ import mne
 import matplotlib.pyplot as plt
 import os
 
-ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-12\\'
+ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-11-17\\'
 try:
     os.mkdir(ffolder+'filt_and_rsamp')
 except:
     print('Directory already created')
 for fname in os.listdir(ffolder):
    # if 'harp' in fname:
-    if '_merged' in fname:
+    if 'slice3_merged' in fname:
         ceed_data = ffolder+fname
 
         # create instance that can load the data
@@ -37,6 +37,6 @@ for fname in os.listdir(ffolder):
             reader.electrodes_data[elec] = butter_lowpass_filter(reader.electrodes_data[elec], Fs, 200)
             reader.electrodes_data[elec] = signal.resample(reader.electrodes_data[elec], num_samples)
             reader.electrodes_data[elec] = butter_highpass_filter(reader.electrodes_data[elec], rfs, 1)
-            reader.electrodes_data[elec] = iir_notch(reader.electrodes_data[elec], rfs * Hz, frequency=60 * Hz, quality=60., axis=-1)
+            reader.electrodes_data[elec] = iir_notch(reader.electrodes_data[elec], rfs * Hz, frequency=60 * Hz, quality=30., axis=-1)
 
         np.save(ffolder+'filt_and_rsamp\\' + fname+'.npy',reader.electrodes_data)

@@ -1,8 +1,8 @@
 import logging
 from ceed.analysis.merge_data import CeedMCSDataMerger
-fdir = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-12\\'
-ceed_file = fdir+'slice6.h5'
-mcs_file = fdir+'2021-08-12T16-09-08McsRecording.h5'
+fdir = r'C:\Users\Michael\Analysis\myRecordings_extra\21-11-17\\'
+ceed_file = fdir+'slice5.h5'
+mcs_file = fdir+'2021-11-17T15-52-00McsRecording.h5'
 output_file = ceed_file.replace('.h5','_merged.h5')
 notes = ''
 notes_filename = None
@@ -15,10 +15,9 @@ merger.read_ceed_data()
 merger.parse_mcs_data()
 
 alignment = {}
-for experiment in merger.get_experiment_numbers([1]):
+for experiment in merger.get_experiment_numbers():
     merger.read_ceed_experiment_data(experiment)
     merger.parse_ceed_experiment_data()
-
     try:
         align = alignment[experiment] = merger.get_alignment(ignore_additional_ceed_frames=True)
         # print experiment summary, see method for column meaning

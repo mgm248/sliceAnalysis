@@ -17,9 +17,9 @@ import pandas as pd
 
 get_exp_data = False
 segment = [-1, 6]
-ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-04\\'
-fname = 'slice7_merged.h5'
-rec_fname = '2021-08-04T14-52-44McsRecording'
+ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-12\\'
+fname = 'slice5_merged.h5'
+rec_fname = '2021-08-12T15-52-57McsRecording'
 ceed_data = ffolder+fname
 Fs=20000
 reader = CeedDataReader(ceed_data)
@@ -73,7 +73,7 @@ for unit in range(0, len(all_spikes)):
     neo_st.append(neo.core.SpikeTrain(unitST, units=s, t_start=0 * s,
                                       t_stop=tstop*s))
     sp_smooth = elephant.statistics.instantaneous_rate(neo_st[0], sampling_period=1 * pq.ms,
-                                           kernel=elephant.kernels.GaussianKernel(3 * pq.ms))
+                                           kernel=elephant.kernels.GaussianKernel(5 * pq.ms))
 
     for row in range(0,exp_df.shape[0]):
         start = exp_df.loc[row, 't_start']*s+segment[0]*s
@@ -90,7 +90,7 @@ for unit in range(0, len(all_spikes)):
             print('Stimuli after recording stopped')
 
 ev_sr_df = pd.DataFrame(all_d)
-ev_sr_curr = ev_sr_df[ev_sr_df['substage'] == '1s stim const']
+ev_sr_curr = ev_sr_df[ev_sr_df['substage'] == '10s stim const']
 plt.figure(figsize=(18,10))
 plt.plot(np.arange(segment[0], segment[1], .001), np.mean(ev_sr_curr['event spike rate'],0))
 
@@ -101,7 +101,7 @@ for unit in ev_sr_df['Unit #'].unique():
     ev_sr_curru = ev_sr_curr[ev_sr_curr['Unit #'] == unit]
     for trial in range(0, ev_sr_curru.shape[0]):
         plt.plot(np.arange(segment[0], segment[1], .001), ev_sr_curru.iloc[trial]['event spike rate'])
-    plt.savefig(r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-04\Figures\spikes\evoked_srs\perunit\slice7\\unit'+str(unit)+'.png')
+    plt.savefig(r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-12\Figures\spikes\evoked_spikerates\slice5\\unit'+str(unit)+'.png')
     plt.close()
 """Per neuron, mean trials"""
 for unit in ev_sr_df['Unit #'].unique():
@@ -109,7 +109,7 @@ for unit in ev_sr_df['Unit #'].unique():
     plt.figure(figsize=(18,10))
     ev_sr_curru = ev_sr_curr[ev_sr_curr['Unit #'] == unit]
     plt.plot(np.arange(segment[0], segment[1], .001), np.mean(ev_sr_curru['event spike rate'],0))
-    plt.savefig(r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-04\Figures\spikes\evoked_srs\perunit\slice7\\unit'+str(unit)+'.png')
+    plt.savefig(r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-12\Figures\spikes\evoked_spikerates\slice5\10s_stim\\unit'+str(unit)+'.png')
     plt.close()
 
 """Per neuron, mean trials"""

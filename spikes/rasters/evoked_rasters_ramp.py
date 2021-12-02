@@ -15,10 +15,10 @@ import elephant
 import quantities as pq
 import pandas as pd
 
-segment = [-.25, .5]
-ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-11-17\\'
-fname = 'slice3_merged.h5'
-rec_fname = '2021-11-17T13-56-54McsRecording'
+segment = [25, 27]
+ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-11-10\\'
+fname = 'slice1_ramp_merged.h5'
+rec_fname = '2021-11-10T11-47-47McsRecording'
 spyk_f = ffolder+'Analysis\\spyking-circus\\' + rec_fname + '\\' + rec_fname + 'times.result.hdf5'
 all_spikes = []
 with h5py.File(spyk_f, "r") as f:
@@ -27,18 +27,6 @@ with h5py.File(spyk_f, "r") as f:
         all_spikes.append(np.asarray(f['spiketimes'][key]))
 
 exp_df = pd.read_pickle(ffolder+'Analysis\\'+fname+'_exp_df.pkl')
-"""Correct the start times of each condition based off the 0's preceding the actual signal stim in exp_df"""
-# row = 0
-# while row < exp_df.shape[0]-10:
-#     if exp_df['substage'][row]=='A medium cos':
-#         n_off = 0
-#         idx = 1
-#         while exp_df['signal A'][row][idx] == 0:
-#             idx+=1
-#             n_off +=1
-#         time_offset = n_off*(1/120)
-#     for row in range(row, row+10):
-#         exp_df.loc[row, 't_start'] = exp_df['t_start'][row] + time_offset*s
 
 ceed_data = ffolder+fname
 Fs=20000
@@ -71,6 +59,15 @@ for unit in range(0, len(all_spikes)):
             print('Stimuli after recording stopped')
 
 ev_sr_df = pd.DataFrame(all_d)
+unit=77
+plt.figure(figsize=(15, 10))
+unit_i = 0
+for trial in ev_sr_df['Event time'].unique():
+    trial_df = ev_sr_df[ev_sr_df['Event time'] == trial]
+    unit_df = trial_df[trial_df['Unit #'] == unit]
+    plt.plot(unit_df['event spike rate'].iloc[0] - trial * s,
+             unit_i * np.ones_like(unit_df['event spike rate'].iloc[0]), '|', markersize=12, color='black')
+    unit_i+=1
 
 def compare_conditions(comparison, unit, shape):
     comparisons = {'delays': ['A delay B', 'B delay A'], 'varyAB': ['A weak '+shape, 'A strong '+shape, 'B weak '+shape, 'B strong '+shape,  'A strong B weak '+shape, 'A weak B strong '+shape],

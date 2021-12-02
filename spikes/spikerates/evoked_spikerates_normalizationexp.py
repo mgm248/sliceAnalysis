@@ -15,174 +15,219 @@ import elephant
 import quantities as pq
 import pandas as pd
 
-get_exp_data = False
-segment = [-1, 2]
-ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-08-12\\'
-fname = 'slice4_merged.h5'
-rec_fname = '2021-08-12T15-22-57McsRecording'
-ceed_data = ffolder+fname
-Fs=20000
-reader = CeedDataReader(ceed_data)
-# open the data file
-reader.open_h5()
 
-if get_exp_data:
-    from ceed_stimulus import get_all_exps_AB, read_exp_df_from_excel, write_exp_df_to_excel
-    exp_df = get_all_exps_AB(ceed_data)
-    exp_df.to_pickle(ffolder+'Analysis\\'+fname+'_exp_df.pkl')
-    # write_exp_df_to_excel(exp_df, ffolder+'Analysis\\'+fname+'_experiment_df.xlsx', 'Sheet1')
-else:
-    exp_df = pd.read_pickle(ffolder+'Analysis\\'+fname+'_exp_df.pkl')
-"""Correct the start times of each condition based off the 0's preceding the actual signal stim in exp_df"""
-# row = 0
-# while row < exp_df.shape[0]-10:
-#     if exp_df['substage'][row]=='Stage A medium':
-#         n_off = 0
-#         idx = 1
-#         while exp_df['signal A'][row][idx] == 0:
-#             idx+=1
-#             n_off +=1
-#         time_offset = n_off*(1/120)
-#     for row in range(row, row+10):
-#         exp_df.loc[row, 't_start'] = exp_df['t_start'][row] + time_offset*s
-
-
-spyk_f = ffolder+'Analysis\\spyking-circus\\' + rec_fname + '\\' + rec_fname + 'times.result.hdf5'
-all_spikes = []
-with h5py.File(spyk_f, "r") as f:
-    # List all groups
-    for key in f['spiketimes'].keys():
-        all_spikes.append(np.asarray(f['spiketimes'][key]))
-
-
-# clusterinfo_f = ffolder+'Analysis\\spyking-circus\\' + rec_fname + '\\' + rec_fname + 'times.GUI\cluster_info.tsv'
-# tsv_file = open(clusterinfo_f)
-# read_tsv = csv.reader(tsv_file,delimiter="\t")
-# cluster_info = []
-# for row in read_tsv:
-#     cluster_info.append(row)
-
-
-
-
-all_d = []
-for unit in range(0, len(all_spikes)):
-   # if cluster_info[unit + 1][5] == 'good':
-    unitST = all_spikes[unit] / Fs
-    neo_st = []
-    tstop = exp_df['t_start'].iloc[-1]*s+10*s
-    if unitST[-1] > tstop:
-        tstop = unitST[-1] + 2
-    neo_st.append(neo.core.SpikeTrain(unitST, units=s, t_start=0 * s,
-                                      t_stop=tstop))
-    sp_smooth = elephant.statistics.instantaneous_rate(neo_st[0], sampling_period=1 * pq.ms,
-                                           kernel=elephant.kernels.GaussianKernel(5 * pq.ms))
-
-    for row in range(0,exp_df.shape[0]):
-        start = exp_df.iloc[row]['t_start']*s+segment[0]*s
-        end = exp_df.iloc[row]['t_start']*s+segment[1]*s
-        try:
-            seg_st = sp_smooth.time_slice(start, (end - .001*s) + .001 * pq.s)
-            d = {
-                'event spike rate': np.squeeze(seg_st),
-                'description': exp_df.iloc[row]['substage'],
-                'Unit #': unit
-            }
-            all_d.append(d)
-        except ValueError:
-            print('Stimuli after recording stopped')
-
-ev_sr_df = pd.DataFrame(all_d)
-ev_sr_Asep = ev_sr_df[ev_sr_df['description'].isin(['A strong sq'])]
-ev_sr_Bsep = ev_sr_df[ev_sr_df['description'].isin(['B strong sq'])]
-
-plt.figure(figsize=(18,10))
-plt.plot(np.arange(segment[0], segment[1], .001), np.mean(ev_sr_Asep['event spike rate'],0))
-plt.plot(np.arange(segment[0], segment[1], .001), np.mean(ev_sr_Bsep['event spike rate'],0))
-plt.legend(['A', 'B'])
-plt.title('Mean all')
-
-plt.figure(figsize=(18,10))
-ev_sr_curr = ev_sr_df[ev_sr_df['description'] == 'A strong B medium sq']
-plt.plot(np.arange(segment[0], segment[1], .001), np.mean(ev_sr_curr['event spike rate'],0))
-
-
-# plt.savefig(ffolder+'Figures\spikes\evoked_spikerates\\'+fname+'_mean_Asep_Bsep.png')
-#
-# def plot_all_responses_bytime(ev_sr_df, subf, ffolder):
-#     for unit in range(0, np.max(ev_sr_df['Unit #'])):
-#         if np.any(ev_sr_0s['Unit #']==unit):
-#             plt.close()
-#             plt.figure()
-#             plt.plot(np.arange(segment[0], segment[1], .001), np.mean(ev_sr_df[ev_sr_df['Unit #']==unit]['event spike rate']))
-#             plt.savefig(ffolder+'Figures\spikes\evoked_spikerates\\'+subf+'\\'+ fname+'\\'+'Unit'+str(unit)+'_sq')
-
-def plot_responses_timestog(ev_sr_Asep, ev_sr_Bsep, shape='sq', square_exp=False):
+def plot_responses_timestog(shape='sq', square_exp=False):
     if square_exp:
-        ev_sr_Asep = ev_sr_df[ev_sr_df['description'].isin(['A strong '+shape])]
-        ev_sr_Bsep = ev_sr_df[ev_sr_df['description'].isin(['B strong '+shape])]
+        ev_sr_Asep = ev_sr_df[ev_sr_df['description'].isin(['A strong ' + shape])]
+        ev_sr_Bsep = ev_sr_df[ev_sr_df['description'].isin(['B strong ' + shape])]
     else:
         ev_sr_Asep = ev_sr_df[ev_sr_df['description'].isin(['Stage A medium'])]
         ev_sr_Bsep = ev_sr_df[ev_sr_df['description'].isin(['Stage B medium'])]
     for unit in range(0, np.max(ev_sr_Asep['Unit #'])):
-        if np.any(ev_sr_Asep['Unit #']==unit):
+        if np.any(ev_sr_Asep['Unit #'] == unit):
             plt.close()
-            plt.figure(figsize=(18,10))
-            plt.plot(np.arange(segment[0], segment[1], .001), np.mean(ev_sr_Asep[ev_sr_Asep['Unit #']==unit]['event spike rate']))
-            plt.plot(np.arange(segment[0], segment[1], .001), np.mean(ev_sr_Bsep[ev_sr_Bsep['Unit #']==unit]['event spike rate']))
-            plt.legend(['Asep','Bsep'])
-            plt.savefig(ffolder + r'Figures\spikes\evoked_spikerates\A and B\\' + fname + '\\'+'A sep B sep\\'+'Unit' + str(unit)+'_'+shape)
+            plt.figure(figsize=(18, 10))
+            plt.plot(np.arange(segment[0], segment[1], .001),
+                     np.mean(ev_sr_Asep[ev_sr_Asep['Unit #'] == unit]['event spike rate']))
+            plt.plot(np.arange(segment[0], segment[1], .001),
+                     np.mean(ev_sr_Bsep[ev_sr_Bsep['Unit #'] == unit]['event spike rate']))
+            plt.legend(['Asep', 'Bsep'])
+            plt.savefig(
+                ffolder + r'Figures\spikes\evoked_spikerates\A and B\\' + fname + '\\' + 'A sep B sep\\' + 'Unit' + str(
+                    unit) + '_' + shape)
+
 
 def plot_responses_condtog(ev_sr_df, shape='sq', square_exp=False):
     if square_exp:
-        ev_sr_Ast_Bmd = ev_sr_df[ev_sr_df['description'].isin(['A strong B weak ' +shape])]
-        ev_sr_Amd_Bst = ev_sr_df[ev_sr_df['description'].isin(['A weak B strong '+shape])]
+        ev_sr_Ast_Bmd = ev_sr_df[ev_sr_df['description'].isin(['A strong B weak ' + shape])]
+        ev_sr_Amd_Bst = ev_sr_df[ev_sr_df['description'].isin(['A weak B strong ' + shape])]
     else:
         ev_sr_Ast_Bmd = ev_sr_df[ev_sr_df['description'].isin(['A strong B weak'])]
         ev_sr_Amd_Bst = ev_sr_df[ev_sr_df['description'].isin(['A weak B strong'])]
-    for unit in range(0, np.max(ev_sr_Asep['Unit #'])):
-        if np.any(ev_sr_Asep['Unit #']==unit):
+    for unit in range(0, np.max(ev_sr_Ast_Bmd['Unit #'])):
+        if np.any(ev_sr_Ast_Bmd['Unit #'] == unit):
             plt.close()
-            plt.figure(figsize=(18,10))
-            plt.plot(np.arange(segment[0], segment[1], .001), np.mean(ev_sr_Ast_Bmd[ev_sr_Ast_Bmd['Unit #']==unit]['event spike rate']))
-            plt.plot(np.arange(segment[0], segment[1], .001), np.mean(ev_sr_Amd_Bst[ev_sr_Amd_Bst['Unit #']==unit]['event spike rate']))
-            plt.legend(['A strong B medium','B strong A medium'])
-            plt.savefig(ffolder + r'Figures\spikes\evoked_spikerates\A and B\\' + fname + '\\' + 'A+B\\'+'Unit' + str(unit)+'_'+shape)
+            plt.figure(figsize=(18, 10))
+            plt.plot(np.arange(segment[0], segment[1], .001),
+                     np.mean(ev_sr_Ast_Bmd[ev_sr_Ast_Bmd['Unit #'] == unit]['event spike rate']))
+            plt.plot(np.arange(segment[0], segment[1], .001),
+                     np.mean(ev_sr_Amd_Bst[ev_sr_Amd_Bst['Unit #'] == unit]['event spike rate']))
+            plt.legend(['A strong B medium', 'B strong A medium'])
+            plt.savefig(ffolder + r'Figures\spikes\evoked_spikerates\A and B\\' + fname + '\\' + 'A+B\\' + 'Unit' + str(
+                unit) + '_' + shape)
 
-"""Plot each neurons' response to stimuli, save"""
-import os
-try:
-    os.mkdir(ffolder + r'\Figures\spikes\evoked_spikerates\\' + 'A and B')
+get_exp_data = False
+segment = [-1, 2]
+ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-11-01\\'
+fnames = ['slice4_merged.h5']
+rec_fnames = ['2021-11-01T16-47-27McsRecording']
+for f in range(0, len(fnames)):
+    fname = fnames[f]
+    rec_fname = rec_fnames[f]
+    ceed_data = ffolder+fname
+    Fs=20000
+    reader = CeedDataReader(ceed_data)
+    # open the data file
+    reader.open_h5()
 
-except:
-    print('Directory already made')
-try:
-    os.mkdir(ffolder + r'\Figures\spikes\evoked_spikerates\\' + 'A and B'+ '\\' + fname)
-except:
-    print('File directory already made')
+    if get_exp_data:
+        from ceed_stimulus import get_all_exps_AB, read_exp_df_from_excel, write_exp_df_to_excel
+        exp_df = get_all_exps_AB(ceed_data)
+        exp_df.to_pickle(ffolder+'Analysis\\'+fname+'_exp_df.pkl')
+        # write_exp_df_to_excel(exp_df, ffolder+'Analysis\\'+fname+'_experiment_df.xlsx', 'Sheet1')
+    else:
+        exp_df = pd.read_pickle(ffolder+'Analysis\\'+fname+'_exp_df.pkl')
+    """Correct the start times of each condition based off the 0's preceding the actual signal stim in exp_df"""
+    # row = 0
+    # while row < exp_df.shape[0]-10:
+    #     if exp_df['substage'][row]=='Stage A medium':
+    #         n_off = 0
+    #         idx = 1
+    #         while exp_df['signal A'][row][idx] == 0:
+    #             idx+=1
+    #             n_off +=1
+    #         time_offset = n_off*(1/120)
+    #     for row in range(row, row+10):
+    #         exp_df.loc[row, 't_start'] = exp_df['t_start'][row] + time_offset*s
 
-try:
-    os.mkdir(ffolder + r'\Figures\spikes\evoked_spikerates\\' + 'A and B'+ '\\' + fname + '\\' + 'A sep B sep')
-    os.mkdir(ffolder + r'\Figures\spikes\evoked_spikerates\\' + 'A and B'+ '\\' + fname + '\\' + 'A+B')
-except:
-    print('File directory already made')
 
-plot_responses_timestog(ev_sr_Asep, ev_sr_Bsep, shape='sq', square_exp=True)
-plot_responses_condtog(ev_sr_df, shape='sq', square_exp=True)
-# plot_responses_timestog(ev_sr_Asep, ev_sr_Bsep, shape='cos', square_exp=True)
-# plot_responses_condtog(ev_sr_df, shape='cos',square_exp=True)
+    spyk_f = ffolder+'Analysis\\spyking-circus\\' + rec_fname + '\\' + rec_fname + 'times.result.hdf5'
+    all_spikes = []
+    with h5py.File(spyk_f, "r") as f:
+        # List all groups
+        for key in f['spiketimes'].keys():
+            all_spikes.append(np.asarray(f['spiketimes'][key]))
+
+
+    # clusterinfo_f = ffolder+'Analysis\\spyking-circus\\' + rec_fname + '\\' + rec_fname + 'times.GUI\cluster_info.tsv'
+    # tsv_file = open(clusterinfo_f)
+    # read_tsv = csv.reader(tsv_file,delimiter="\t")
+    # cluster_info = []
+    # for row in read_tsv:
+    #     cluster_info.append(row)
+
+
+
+
+    all_d = []
+    for unit in range(0, len(all_spikes)):
+       # if cluster_info[unit + 1][5] == 'good':
+        unitST = all_spikes[unit] / Fs
+        neo_st = []
+        tstop = exp_df['t_start'].iloc[-1]*s+10*s
+        if unitST[-1] > tstop:
+            tstop = unitST[-1] + 2
+        neo_st.append(neo.core.SpikeTrain(unitST, units=s, t_start=0 * s,
+                                          t_stop=tstop))
+        sp_smooth = elephant.statistics.instantaneous_rate(neo_st[0], sampling_period=1 * pq.ms,
+                                               kernel=elephant.kernels.GaussianKernel(5 * pq.ms))
+
+        for row in range(0,exp_df.shape[0]):
+            start = exp_df.iloc[row]['t_start']*s+segment[0]*s
+            end = exp_df.iloc[row]['t_start']*s+segment[1]*s
+            try:
+                seg_st = sp_smooth.time_slice(start, (end - .001*s) + .001 * pq.s)
+                d = {
+                    'event spike rate': np.squeeze(seg_st),
+                    'description': exp_df.iloc[row]['substage'],
+                    'Unit #': unit
+                }
+                all_d.append(d)
+            except ValueError:
+                print('Stimuli after recording stopped')
+
+    ev_sr_df = pd.DataFrame(all_d)
+    # ev_sr_Asep = ev_sr_df[ev_sr_df['description'].isin(['A strong sq'])]
+    # ev_sr_Bsep = ev_sr_df[ev_sr_df['description'].isin(['B strong sq'])]
+    #
+    # plt.figure(figsize=(18,10))
+    # plt.plot(np.arange(segment[0], segment[1], .001), np.mean(ev_sr_Asep['event spike rate'],0))
+    # plt.plot(np.arange(segment[0], segment[1], .001), np.mean(ev_sr_Bsep['event spike rate'],0))
+    # plt.legend(['A', 'B'])
+    # plt.title('Mean all')
+    #
+    # plt.figure(figsize=(18,10))
+    # ev_sr_curr = ev_sr_df[ev_sr_df['description'] == 'A strong B medium sq']
+    # plt.plot(np.arange(segment[0], segment[1], .001), np.mean(ev_sr_curr['event spike rate'],0))
+
+
+    # plt.savefig(ffolder+'Figures\spikes\evoked_spikerates\\'+fname+'_mean_Asep_Bsep.png')
+    #
+    # def plot_all_responses_bytime(ev_sr_df, subf, ffolder):
+    #     for unit in range(0, np.max(ev_sr_df['Unit #'])):
+    #         if np.any(ev_sr_0s['Unit #']==unit):
+    #             plt.close()
+    #             plt.figure()
+    #             plt.plot(np.arange(segment[0], segment[1], .001), np.mean(ev_sr_df[ev_sr_df['Unit #']==unit]['event spike rate']))
+    #             plt.savefig(ffolder+'Figures\spikes\evoked_spikerates\\'+subf+'\\'+ fname+'\\'+'Unit'+str(unit)+'_sq')
+
+
+    """Plot each neurons' response to stimuli, save"""
+    import os
+    try:
+        os.mkdir(ffolder + r'\Figures\spikes\evoked_spikerates\\' + 'A and B')
+
+    except:
+        print('Directory already made')
+    try:
+        os.mkdir(ffolder + r'\Figures\spikes\evoked_spikerates\\' + 'A and B'+ '\\' + fname)
+    except:
+        print('File directory already made')
+
+    try:
+        os.mkdir(ffolder + r'\Figures\spikes\evoked_spikerates\\' + 'A and B'+ '\\' + fname + '\\' + 'A sep B sep')
+        os.mkdir(ffolder + r'\Figures\spikes\evoked_spikerates\\' + 'A and B'+ '\\' + fname + '\\' + 'A+B')
+    except:
+        print('File directory already made')
+
+    plot_responses_timestog(shape='sq', square_exp=True)
+    plot_responses_condtog(ev_sr_df, shape='sq', square_exp=True)
+    # plot_responses_timestog(ev_sr_Asep, ev_sr_Bsep, shape='cos', square_exp=True)
+    # plot_responses_condtog(ev_sr_df, shape='cos',square_exp=True)
 
 """For a neuron, compare its response to B alone with its response to B medium with A strong and B medium with A weak"""
-unit=123
-shape = 'sq'
-plt.figure(figsize=(18,10))
-conditions = ['A strong '+shape, 'B medium '+shape, 'A strong B medium '+shape, 'A weak B medium '+shape]
-for c in conditions:
-    ev_sr_curr = ev_sr_df[ev_sr_df['description'].isin([c])]
-    plt.plot(np.arange(segment[0], segment[1], .001), np.mean(ev_sr_curr[ev_sr_curr['Unit #']==unit]['event spike rate']))
-    # plt.xlim(-.05, .1)
-plt.legend(conditions)
-plt.title('Unit '+str(unit)+' Vary A')
+responsive_units = [35, 36, 53, 90, 91, 100, 101, 109, 119]
+for unit in responsive_units:
+    shape = 'sq'
+    plt.figure(figsize=(18,10))
+    conditions = ['A strong '+shape, 'B strong '+shape, 'A strong B weak '+shape, 'A weak B strong '+shape]
+    for c in conditions:
+        ev_sr_curr = ev_sr_df[ev_sr_df['description'].isin([c])]
+        plt.plot(np.arange(segment[0], segment[1], .001), np.mean(ev_sr_curr[ev_sr_curr['Unit #']==unit]['event spike rate']))
+        plt.xlim(-.2, .5)
+    plt.legend(conditions)
+    plt.title('Unit '+str(unit)+' Vary strength')
+    plt.savefig(
+        ffolder + r'Figures\spikes\evoked_spikerates\A and B\\' + fname + '\\' + 'condition_comparisons\\' + 'Unit' + str(
+            unit) + '_Vary strength')
+    plt.close()
+    """For a neuron, compare its response to B alone with its response to A delay B and B delay A"""
+    plt.figure(figsize=(18,10))
+    conditions = ['A strong sq', 'B strong sq', 'A delay B', 'B delay A']
+    for c in conditions:
+        ev_sr_curr = ev_sr_df[ev_sr_df['description'].isin([c])]
+        plt.plot(np.arange(segment[0], segment[1], .001), np.mean(ev_sr_curr[ev_sr_curr['Unit #']==unit]['event spike rate']))
+        plt.xlim(-.2, .5)
+    plt.legend(conditions)
+    plt.title('Unit '+str(unit)+' delay')
+    plt.savefig(
+        ffolder + r'Figures\spikes\evoked_spikerates\A and B\\' + fname + '\\' + 'condition_comparisons\\' + 'Unit' + str(
+            unit) + '_delay')
+    plt.close()
+    """Compare its response to A, B ramp alone with A, B ramp together"""
+    plt.figure(figsize=(18, 10))
+    conditions = ['ramp to .5 A', 'ramp to .5 B', 'A strong B weak ramp', 'A weak B strong ramp']
+    for c in conditions:
+        ev_sr_curr = ev_sr_df[ev_sr_df['description'].isin([c])]
+        plt.plot(np.arange(segment[0], segment[1], .001),
+                 np.mean(ev_sr_curr[ev_sr_curr['Unit #'] == unit]['event spike rate']))
+        plt.xlim(-1, 2)
+    plt.legend(conditions)
+    plt.title('Unit ' + str(unit) + ' ramp')
+    plt.savefig(
+        ffolder + r'Figures\spikes\evoked_spikerates\A and B\\' + fname + '\\' + 'condition_comparisons\\' + 'Unit' + str(
+            unit) + '_ramp')
+    plt.close()
 
 """For a neuron, compare its response to A alone with its response to A medium with B strong and A medium with B weak"""
 plt.figure(figsize=(18,10))
@@ -194,15 +239,8 @@ for c in conditions:
 plt.legend(conditions)
 plt.title('Unit '+str(unit)+' Vary B')
 
-"""For a neuron, compare its response to B alone with its response to A delay B and B delay A"""
-plt.figure(figsize=(18,10))
-conditions = ['A medium sq', 'A delay B', 'B delay A']
-for c in conditions:
-    ev_sr_curr = ev_sr_df[ev_sr_df['description'].isin([c])]
-    plt.plot(np.arange(segment[0], segment[1], .001), np.mean(ev_sr_curr[ev_sr_curr['Unit #']==unit]['event spike rate']))
-    # plt.xlim(-.05, .2)
-plt.legend(conditions)
-plt.title('Unit '+str(unit)+' delay')
+
+
 # conditions=[]
 # for evt in my_annot:
 #     condition=evt['description'].replace('; Shape A', '')

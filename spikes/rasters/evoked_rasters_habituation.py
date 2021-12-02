@@ -15,7 +15,7 @@ import elephant
 import quantities as pq
 import pandas as pd
 
-segment = [-.25, .5]
+segment = [-1, 2]
 ffolder = r'C:\Users\Michael\Analysis\myRecordings_extra\21-11-17\\'
 fname = 'slice3_merged.h5'
 rec_fname = '2021-11-17T13-56-54McsRecording'
@@ -72,44 +72,35 @@ for unit in range(0, len(all_spikes)):
 
 ev_sr_df = pd.DataFrame(all_d)
 
-def compare_conditions(comparison, unit, shape):
-    comparisons = {'delays': ['A delay B', 'B delay A'], 'varyAB': ['A weak '+shape, 'A strong '+shape, 'B weak '+shape, 'B strong '+shape,  'A strong B weak '+shape, 'A weak B strong '+shape],
-                   'ramps': ['ramp to .5 A', 'ramp to .5 B', 'A strong B weak ramp', 'A weak B strong ramp']}
-    sep_conds = comparisons[comparison]
+def compare_conditions(conditions, unit):
     plt.figure(figsize=(15, 10))
-    for i, condition in enumerate(sep_conds):
+    for i, condition in enumerate(conditions):
         print(condition)
         curr_df = ev_sr_df[ev_sr_df['description'] == condition]
         print(curr_df['description'].unique())
-        plt.subplot(len(sep_conds),1,i+1)
+        plt.subplot(len(conditions),1,i+1)
         unit_i = 0
         for trial in curr_df['Event time'].unique():
             trial_df = curr_df[curr_df['Event time'] == trial]
             unit_df = trial_df[trial_df['Unit #'] == unit]
             plt.plot(unit_df['event spike rate'].iloc[0] - trial * s,
                      unit_i * np.ones_like(unit_df['event spike rate'].iloc[0]), 'k.', markersize=4)
-            if comparison=='ramps':
-                plt.xlim(-.5, 2)
-            else:
-                plt.xlim(-.1, .7)
             unit_i += 1
-        if i < len(sep_conds)-1:
+            plt.xlim(-.25, .5)
+        if i < len(conditions)-1:
             plt.xticks([])
         plt.ylim(-.5, unit_i+.5)
         plt.axvline(0)
         plt.title(condition)
-        plt.savefig(ffolder+r'Figures\spikes\evoked_spikerates\A and B\\'+fname+'\\condition_comparisons\\rasters\\Unit'+str(unit)+'_'+comparison+shape)
+        # plt.savefig(ffolder+r'Figures\spikes\evoked_spikerates\A and B\\'+fname+'\\condition_comparisons\\rasters\\Unit'+str(unit)+'_'+comparison+shape)
 # cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
 #sep_conds = ['A delay B', 'B delay A']
 #sep_conds = ['A medium sq', 'A delay B', 'B delay A']
 #colors = ['blue', 'red']
-responsive_units = [35, 36, 53, 90, 91, 100, 101, 109, 119]
-comparisons = ['delays', 'varyAB', 'ramps']
+responsive_units = [7]
 for unit in responsive_units:
-    for comparison in comparisons:
-        # compare_conditions(comparison, unit, 'cos')
-        compare_conditions(comparison, unit, 'sq')
-        plt.close('all')
+    compare_conditions(['ITI 5.0s', 'NE ITI 5.0s', 'Washout ITI 5.0s'], unit)
+    plt.close('all')
 
 #TODO: on raster, plot expected response (if just A + just B)
 A_resp = [54]
